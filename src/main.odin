@@ -49,6 +49,7 @@ foreign kernel32 {
 
 error :: proc(str: string) {
     fmt.println(str);
+    fmt.println("Error Code:", win32.GetLastError());
     os.exit(1);
 }
 

@@ -64,7 +64,8 @@ typedef uint64_t u64;
 
 void error(const char *string) 
 { 
-    printf("%s", string);
+    printf("%s\n", string);
+    printf("Error Code: %d\n", GetLastError());
     fflush(stdout);
     ExitProcess(1);
 }
@@ -126,26 +127,27 @@ int main(int argc, char *argv[])
 
     // Create a pipe for the child process's STDOUT. 
     if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0)) {
-        error("StdoutRd CreatePipe"); 
+        error("StdoutRd CreatePipe failed."); 
     }
 
     // Ensure the read handle to the pipe for STDOUT is not inherited.
     if (!SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0)) {
-        error("Stdout SetHandleInformation"); 
+        error("Stdout SetHandleInformation failed."); 
     }
 
     // Create a pipe for the child process's STDIN. 
     if (!CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0)) {
-        error("Stdin CreatePipe"); 
+        error("Stdin CreatePipe failed."); 
     }
 
     // Ensure the write handle to the pipe for STDIN is not inherited. 
     if (!SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0)) {
-        error("Stdin SetHandleInformation"); 
+        error("Stdin SetHandleInformation failed."); 
     }
     
     char cmd[4096];
     int offset = 0;
+
     for (int i = 1; i < argc; i += 1)
     {
         int len = strlen(argv[i]);
@@ -189,7 +191,7 @@ int main(int argc, char *argv[])
         
     // If an error occurs, exit the application. 
     if (!bSuccess) {
-        error("CreateProcess");
+        error("CreateProcess failed.");
     }
 
     f64 start_time = os_time();
