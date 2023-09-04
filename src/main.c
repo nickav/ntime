@@ -199,8 +199,8 @@ int main(int argc, char *argv[])
     // Close handles to the child process and its primary thread.
     // Some applications might keep these handles to monitor the status
     // of the child process, for example. 
-    CloseHandle(piProcInfo.hProcess);
-    CloseHandle(piProcInfo.hThread);
+    //CloseHandle(piProcInfo.hProcess);
+    //CloseHandle(piProcInfo.hThread);
     
     // Close handles to the stdin and stdout pipes no longer needed by the child process.
     // If they are not explicitly closed, there is no way to recognize that the child process has ended.
@@ -222,11 +222,15 @@ int main(int argc, char *argv[])
         if (!bSuccess) break; 
     } 
 
+    WaitForSingleObject(piProcInfo.hProcess, INFINITE);
+    int code = 0;
+    GetExitCodeProcess(piProcInfo.hProcess, &code);
+
     // The remaining open handles are cleaned up when this process terminates. 
     // To avoid resource leaks in a larger application, close handles explicitly. 
 
     f64 end_time = os_time();
     printf("[time] %s (%.2fms)\n", cmd, (end_time - start_time) * 1000.0);
 
-    return 0; 
+    return code;
 }
