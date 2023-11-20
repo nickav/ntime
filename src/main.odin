@@ -156,5 +156,13 @@ main :: proc() {
     }
 
     time.stopwatch_stop(&timer);
-    fmt.println("[time] ", cmd, " (", time.stopwatch_duration(timer), ")", sep = "");
+    fmt.println("[time] ", cmd, " (", time.stopwatch_duration(timer), ")");
+
+    exit_code: DWORD;
+    win32.GetExitCodeProcess(piProcInfo.hProcess, &exit_code);
+
+    win32.CloseHandle(piProcInfo.hProcess);
+    win32.CloseHandle(piProcInfo.hThread);
+
+    win32.ExitProcess(exit_code);
 }
