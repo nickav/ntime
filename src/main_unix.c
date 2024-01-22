@@ -4,6 +4,25 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+#include <stdint.h>
+
+#if defined(__linux)
+#  define HAVE_POSIX_TIMER
+#  include <time.h>
+#  ifdef CLOCK_MONOTONIC
+#     define CLOCKID CLOCK_MONOTONIC
+#  else
+#     define CLOCKID CLOCK_REALTIME
+#  endif
+#elif defined(__APPLE__)
+#  define HAVE_MACH_TIMER
+#  include <mach/mach_time.h>
+#elif defined(_WIN32)
+# error "Windows is not supported. Use main.c instead"
+#endif
+
+typedef double f64;
+typedef uint64_t u64;
 
 
 void error(const char *string) 
@@ -12,6 +31,45 @@ void error(const char *string)
     printf("Error Code: %d\n", errno);
     fflush(stdout);
     exit(1);
+}
+
+f64 os_time()
+{
+#if defined(__APPLE__)
+    #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+        static f64 macos_initial_clock = 0;
+        if (!macos_initial_clock) {
+            macos_initial_clock = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
+        }
+        return (f64)(clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) - macos_initial_clock) / (f64)(1e9);
+    #else
+        static uint64_t is_init = 0;
+        static mach_timebase_info_data_t info;
+        if (0 == is_init) {
+          mach_timebase_info(&info);
+          is_init = 1;
+        }
+        uint64_t now;
+        now = mach_absolute_time();
+        now *= info.numer;
+        now /= info.denom;
+        return (f64)now / 1e-6;
+    #endif
+#elif defined(__linux)
+    static uint64_t is_init = 0;
+    static struct timespec linux_rate;
+    if (0 == is_init) {
+      clock_getres(CLOCKID, &linux_rate);
+      is_init = 1;
+    }
+    uint64_t now;
+    struct timespec spec;
+    clock_gettime(CLOCKID, &spec);
+    now = spec.tv_sec * 1.0e9 + spec.tv_nsec;
+    return (f64)now / 1e-6;
+#elif defined(_WIN32)
+    return 0;
+#endif
 }
 
 int main(int argc, char *argv[]) 
@@ -48,7 +106,7 @@ int main(int argc, char *argv[])
 
     cmd[offset] = '\0';
 
-    clock_t start_time = clock();
+    f64 start_time = os_time();
 
     FILE *fp = popen(cmd, "r");
     if (fp == NULL) {
@@ -62,10 +120,8 @@ int main(int argc, char *argv[])
 
     int result = pclose(fp);
 
-    clock_t end_time = clock();
-
-    float elapsed = (float)(end_time - start_time) * 1000 / CLOCKS_PER_SEC;
-
+    f64 end_time = os_time();
+    f64 elapsed = (f64)(end_time - start_time);
     printf("[time] %s (%.2fms)\n", cmd, elapsed);
 
     return result;
