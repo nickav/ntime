@@ -1,4 +1,4 @@
-#include <stdio.h> 
+#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -121,8 +121,8 @@ int main(int argc, char *argv[])
     int result = pclose(fp);
 
     f64 end_time = os_time();
-    f64 elapsed = (f64)(end_time - start_time);
-    printf("[time] %s (%.2fms)\n", cmd, elapsed);
+    f64 elapsed_ms = (f64)(end_time - start_time) * 1000.0;
+    printf("[time] %s (%.2fms)\n", cmd, elapsed_ms);
 
     return result;
 }
