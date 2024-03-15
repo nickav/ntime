@@ -17,6 +17,7 @@ goodbye.
 [time] .\chello.exe (204.40ms)
 ```
 
+Also includes a unix file for MacOS and Linux. These you have to compile from source.
 
 ## Download
 
