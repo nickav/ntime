@@ -17,8 +17,16 @@ goodbye.
 [time] .\chello.exe (204.40ms)
 ```
 
-Also includes a unix file for MacOS and Linux. These you have to compile from source.
-
 ## Download
 
 [Releases](https://github.com/nickav/ntime/releases)
+
+## Linux and MacOS
+
+Also includes a unix file for MacOS and Linux. These you have to compile from source.
+
+To compile, run:
+
+```bash
+./build.sh
+```
