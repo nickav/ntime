@@ -25,8 +25,8 @@ typedef double f64;
 typedef uint64_t u64;
 
 
-void error(const char *string) 
-{ 
+void error(const char *string)
+{
     printf("%s\n", string);
     printf("Error Code: %d\n", errno);
     fflush(stdout);
@@ -72,8 +72,8 @@ f64 os_time()
 #endif
 }
 
-int main(int argc, char *argv[]) 
-{ 
+int main(int argc, char *argv[])
+{
     // Display help.
     if (argc <= 1)
     {
@@ -113,16 +113,17 @@ int main(int argc, char *argv[])
         error("Failed to run cmd");
     }
 
-    char buffer[1024];
+    char buffer[2048];
     while (fgets(buffer, sizeof(buffer), fp) != NULL) {
         printf("%s", buffer);
     }
 
     int result = pclose(fp);
+    int child_error = WEXITSTATUS(result);
 
     f64 end_time = os_time();
     f64 elapsed_ms = (f64)(end_time - start_time) * 1000.0;
     printf("[time] %s (%.2fms)\n", cmd, elapsed_ms);
 
-    return result;
+    return child_error;
 }
