@@ -52,8 +52,10 @@ typedef struct _PROCESS_INFORMATION {
 #define HANDLE_FLAG_INHERIT 0x00000001
 #endif
 
-#include <stdio.h> 
+#include <stdio.h>
 #include <assert.h>
+#include <ctype.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef double f64;
@@ -150,9 +152,45 @@ int main(int argc, char *argv[])
 
     for (int i = 1; i < argc; i += 1)
     {
-        int len = strlen(argv[i]);
-        memcpy(cmd + offset, argv[i], len);
-        offset += len;
+        char *arg = argv[i];
+        int len = strlen(arg);
+
+        bool needs_quotes = false;
+        for (int j = 0; j < len; j += 1)
+        {
+            if (isspace((unsigned char)arg[j]) || arg[j] == '"')
+            {
+                needs_quotes = true;
+                break;
+            }
+        }
+
+        if (needs_quotes)
+        {
+            cmd[offset] = '"';
+            offset += 1;
+
+            for (int j = 0; j < len; j += 1)
+            {
+                if (arg[j] == '"' || arg[j] == '\\')
+                {
+                    cmd[offset] = '\\';
+                    offset += 1;
+                }
+                cmd[offset] = arg[j];
+                offset += 1;
+
+                assert(offset < 4096);
+            }
+
+            cmd[offset] = '"';
+            offset += 1;
+        }
+        else
+        {
+            memcpy(cmd + offset, arg, len);
+            offset += len;
+        }
 
         if (i < argc - 1)
         {
